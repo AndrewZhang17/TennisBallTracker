@@ -2,7 +2,7 @@
 #include <opencv2\opencv.hpp>
 #include "Ball.h"
 
-class Tracker {
+class Track {
 private:
 	//maximum number of objects to prevent too much noise
 	const int MAX_OBJECTS = 50;
@@ -13,8 +13,8 @@ private:
 	cv::Mat* image;
 	cv::Mat* thresh;
 public:
-	Tracker(cv::Mat& image, cv::Mat& thresh);
-	~Tracker();
+	Track(cv::Mat& image, cv::Mat& thresh);
+	~Track();
 	//Morphological operations to reduce noise in threshold image
 	void morphOps();
 	//Detect ball and store position information

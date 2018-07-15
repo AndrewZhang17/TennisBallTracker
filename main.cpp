@@ -1,10 +1,11 @@
 #include <opencv2\opencv.hpp>
+#include <opencv2\tracking.hpp>
 #include <string>
 #include <iostream>
 #include <vector>
 #include <algorithm>
 #include "Ball.h"
-#include "Tracker.h"
+#include "Track.h"
 
 using namespace cv;
 using namespace std;
@@ -22,9 +23,10 @@ int MAX_S = 0;
 int MIN_V = 255;
 int MAX_V = 0;
 
+Rect2d roi;
 
 static void onMouse(int event, int x, int y, int flags, void *param) {
-	if (event == CV_EVENT_LBUTTONDOWN) {
+	if (event == EVENT_LBUTTONDOWN) {
 		Mat* hsvImg = (Mat*)param;
 		Vec3b intensity = hsvImg->at<Vec3b>(y, x);
 		MIN_H = min((int)intensity.val[0], MIN_H) - 20;
@@ -34,7 +36,7 @@ static void onMouse(int event, int x, int y, int flags, void *param) {
 		MIN_V = min((int)intensity.val[2], MIN_V) - 20;
 		MAX_V = max((int)intensity.val[2], MIN_V) + 20;
 	}
-	if (event == CV_EVENT_FLAG_RBUTTON) {
+	if (event == EVENT_RBUTTONDOWN) {
 		MIN_H = 255;
 		MAX_H = 0;
 		MIN_S = 255;
@@ -51,8 +53,11 @@ int main(int argc, char* argv[]) {
 	Mat HSV;
 	Mat threshold;
 
+	
+	Ptr<Tracker> tracker = TrackerKCF::create();
+
 	Ball ball = Ball();
-	Tracker tracker = Tracker(image, threshold);
+	Track tr = Track(image, threshold);
 
 	//Initialize capture
 	VideoCapture cap;
@@ -107,10 +112,10 @@ int main(int argc, char* argv[]) {
 		inRange(HSV, Scalar(MIN_H, MIN_S, MIN_V), Scalar(MAX_H, MAX_S, MAX_V), threshold);
 
 		//Morphological operations to reduce noise in threshold image
-		tracker.morphOps();
+		tr.morphOps();
 
 		//Detect ball and store position information
-		tracker.track(ball);
+		tr.track(ball);
 		//find speed
 		ball.speed();
 

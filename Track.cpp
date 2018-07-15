@@ -1,22 +1,22 @@
 #include <opencv2\opencv.hpp>
 #include <chrono>
-#include "Tracker.h"
+#include "Track.h"
 #include "Ball.h"
 
 using namespace std;
 using namespace cv;
 
-Tracker::Tracker(Mat& image, Mat& thresh) {
+Track::Track(Mat& image, Mat& thresh) {
 	this->image = &image;
 	this->thresh = &thresh;
 }
 
-Tracker::~Tracker() {
+Track::~Track() {
 	delete image;
 	delete thresh;
 }
 
-void Tracker::morphOps() {
+void Track::morphOps() {
 	Mat erodeElement = getStructuringElement(MORPH_ELLIPSE, Size(3, 3));
 	Mat dilateElement = getStructuringElement(MORPH_ELLIPSE, Size(3, 3));
 
@@ -30,13 +30,13 @@ void Tracker::morphOps() {
 	dilate(*thresh, *thresh, dilateElement);
 }
 
-void Tracker::track(Ball& ball) {
+void Track::track(Ball& ball) {
 	Mat temp;
 	thresh->copyTo(temp);
 
 	vector<vector<Point> > contours;
 	vector<Vec4i> hierarchy;
-	findContours(temp, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
+	findContours(temp, contours, hierarchy, RETR_CCOMP, CHAIN_APPROX_SIMPLE);
 
 	//make sure tracking largest object
 	double smallerArea = 0;
