@@ -9,14 +9,14 @@ private:
 	//if object smaller than minimum or larger than maximum, do not record
 	const int MIN_OBJECT_AREA = 10 * 10;
 	const int MAX_OBJECT_AREA = 400 * 400;
+	//Morphological operations to reduce noise in threshold image
+	void morphOps();
 	//pointers to camera image and threshold image
 	cv::Mat* image;
 	cv::Mat* thresh;
 public:
-	Track(cv::Mat& image, cv::Mat& thresh);
+	Track(cv::Mat* image, cv::Mat* thresh);
 	~Track();
-	//Morphological operations to reduce noise in threshold image
-	void morphOps();
 	//Detect ball and store position information
 	void track(Ball& ball);
 };

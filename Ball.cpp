@@ -15,7 +15,7 @@ void Ball::addPosition(int x, int y, int radius, int time) {
 	}
 }
 
-void Ball::speed() {
+int Ball::speed() {
 	if (positions.size() > 1) {
 		int firstXTotal = 0, lastXTotal = 0, firstYTotal = 0, lastYTotal = 0,
 			firstTimeTotal = 0, lastTimeTotal = 0, radiusTotal = 0,
@@ -49,8 +49,10 @@ void Ball::speed() {
 			double time = (lastTimeAvg - firstTimeAvg) / 1000;
 			double speed = (distance / time)*IN_PER_SEC_TO_MPH;
 			cout << "speed: " << round(speed) << " mph" << endl;
+			return speed;
 		}
 	}
+	return 0;
 }
 
 void Ball::clear(int time) {

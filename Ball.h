@@ -18,7 +18,7 @@ public:
 	//add new position information, if already 10 positions, remove earliest
 	void addPosition(int x, int y, int radius, int time);
 	//calculate speed by averaging first half and last half positions, then v=d/t
-	void speed();
+	int speed();
 	//clear positions if no objects found, delay too long, or noisy threshold 
 	void clear(int time = 0);
 };

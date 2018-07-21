@@ -6,9 +6,9 @@
 using namespace std;
 using namespace cv;
 
-Track::Track(Mat& image, Mat& thresh) {
-	this->image = &image;
-	this->thresh = &thresh;
+Track::Track(Mat* image, Mat* thresh) {
+	this->image = image;
+	this->thresh = thresh;
 }
 
 Track::~Track() {
@@ -22,6 +22,8 @@ void Track::morphOps() {
 
 	erode(*thresh, *thresh, erodeElement);
 	erode(*thresh, *thresh, erodeElement);
+	erode(*thresh, *thresh, erodeElement);
+	erode(*thresh, *thresh, erodeElement);
 
 	dilate(*thresh, *thresh, dilateElement);
 	dilate(*thresh, *thresh, dilateElement);
@@ -31,12 +33,16 @@ void Track::morphOps() {
 }
 
 void Track::track(Ball& ball) {
+	morphOps();
 	Mat temp;
 	thresh->copyTo(temp);
+	GaussianBlur(*thresh, *thresh, Size(9, 9), 2, 2);
 
 	vector<vector<Point> > contours;
 	vector<Vec4i> hierarchy;
 	findContours(temp, contours, hierarchy, RETR_CCOMP, CHAIN_APPROX_SIMPLE);
+	vector<Vec3f> circles;
+	HoughCircles(*thresh, circles, CV_HOUGH_GRADIENT, 1, thresh->rows, 100, 30, 0, 0);
 
 	//make sure tracking largest object
 	double smallerArea = 0;
@@ -46,7 +52,7 @@ void Track::track(Ball& ball) {
 	int x = 0, y = 0, radius = 0, time = 0;
 
 	if (hierarchy.size() > 0) {
-		int numObjects = (int) hierarchy.size();
+		int numObjects = (int)hierarchy.size();
 		//check if noisy filter
 		if (numObjects < MAX_OBJECTS) {
 			for (int i = 0; i >= 0; i = hierarchy[i][0]) {
@@ -73,10 +79,28 @@ void Track::track(Ball& ball) {
 			}
 
 			//if object is found, show on screen
-			if (objectFound == true) {
-				ball.addPosition(x, y, radius, time);
+			if (objectFound || circles.size() > 0) {
+				int xAvg = 0, yAvg = 0, radiusAvg = 0, count = 0;
 				putText(*image, "Tracking Object", Point(0, 50), 2, 1, Scalar(0, 255, 0), 2);
-				circle(*image, Point(x, y), radius, Scalar(0, 255, 0));
+				if (objectFound) {
+					xAvg += x;
+					yAvg += y;
+					radiusAvg += radius;
+					count++;
+					circle(*image, Point(x, y), radius, Scalar(0, 255, 0));
+				}
+				if (circles.size() > 0) {
+					xAvg += circles[0][0];
+					yAvg += circles[0][1];
+					radiusAvg += circles[0][2];
+					count++;
+					circle(*image, Point(circles[0][0], circles[0][1]), circles[0][2], Scalar(255, 0, 0));
+				}
+				xAvg /= count;
+				yAvg /= count;
+				radiusAvg /= count;
+				ball.addPosition(xAvg, yAvg, radiusAvg, time);	
+				circle(*image, Point(xAvg, yAvg), radiusAvg, Scalar(0, 0, 255));
 			}
 			else {
 				time = (int)chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now().time_since_epoch()).count();
